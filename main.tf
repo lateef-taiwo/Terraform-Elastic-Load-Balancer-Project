@@ -70,8 +70,15 @@ resource "aws_security_group" "web-sg" {
     }
 }
 
+# create s3 bucket and allow public read
 resource "aws_s3_bucket" "mybucket" {
+    depends_on = [ 
+        aws_s3_bucket_ownership_controls.mybucket,
+        aws_s3_bucket_public_access_block.mybucket,
+     ]
+
     bucket = "website-storage-bucket"
+    acl = "public-read"
 }
 
 # create 1st instance (first web server)
@@ -83,7 +90,7 @@ resource "aws_instance" "web-server-1" {
     vpc_security_group_ids = [aws_security_group.web-sg.id]
     user_data = base64encode(file("userdata1.sh"))
     tags = {
-      name = "webserver1"
+      Name = "webserver1"
     }
 }
 
@@ -98,8 +105,59 @@ resource "aws_instance" "web-server-2" {
     user_data = base64encode(file("userdata2.sh"))
 
     tags = {
-      name = "webserver2"
+      Name = "webserver2"
     }
 }
 
+#create alb
+resource "aws_alb" "myalb" {
+    name = "myalb"
+    internal = false
+    load_balancer_type = "application"
 
+    security_groups = [ aws_security_group.web-sg.id ]
+    subnets = [ aws_subnet.subnet1.id, aws_instance.web-server-2.id ]
+
+    tags = {
+      Name = "Web-ALB"
+    }
+}
+
+resource "aws_alb_target_group" "tg" {
+    name = "myTG"
+    port = 80
+    protocol = "HTTP"
+    vpc_id = aws_vpc.myvpc.id
+
+    health_check {
+      path = "/"
+      port = "traffic-port"
+    }
+}
+
+resource "aws_lb_target_group_attachment" "attach1" {
+    target_id =aws_instance.web-server-1.id
+    target_group_arn = aws_alb_target_group.tg.arn
+    port = 80 
+ }
+
+ resource "aws_lb_target_group_attachment" "attach2" {
+    target_id =aws_instance.web-server-2.id
+    target_group_arn = aws_alb_target_group.tg.arn
+    port = 80 
+ }
+
+resource "aws_alb_listener" "label" {
+    load_balancer_arn = aws_alb.myalb.arn
+    port = 80
+    protocol = "HTTP"
+
+    default_action {
+      target_group_arn = aws_alb_target_group.tg.arn
+      type = "forward"
+    }
+}
+
+ output "loadbalancerdns" {
+    value = "aws_lb.myalb.dns_name"
+  }
