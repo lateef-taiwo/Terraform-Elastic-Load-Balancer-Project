@@ -48,14 +48,14 @@ resource "aws_security_group" "web-sg" {
         from_port = 80
         to_port = 80
         protocol = tcp
-        cidr_block = ["0.0.0.0/0"]
+        cidr_blocks = ["0.0.0.0/0"]
     }
     ingress {
         description = "SSH Traffic"
         from_port = 22
         to_port = 22
         protocol = tcp
-        cidr_block = ["0.0.0.0/0"]
+        cidr_blocks = ["0.0.0.0/0"]
     }
 
      egress {
@@ -63,7 +63,6 @@ resource "aws_security_group" "web-sg" {
     to_port          = 0
     protocol         = "-1"
     cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
   }
     
     tags = {
@@ -72,16 +71,26 @@ resource "aws_security_group" "web-sg" {
 }
 
 resource "aws_s3_bucket" "mybucket" {
-    bucket = "code-storage-bucket"
+    bucket = "website-storage-bucket"
 }
 
-
+# create 1st instance (first web server)
 resource "aws_instance" "web-server-1" {
     ami = ""
     instance_type = "t2.micro"
     subnet_id = aws_subnet.subnet1.id
     vpc_security_group_ids = [aws_security_group.aws_security_group.web-sg.id]
-    user_data = base64decode(file("user_data.sh"))
+    user_data = base64decode(file("userdata1.sh"))
+
+}
+
+# create 2nd instance (second web server)
+resource "aws_instance" "web-server-2" {
+    ami = ""
+    instance_type = "t2.micro"
+    subnet_id = aws_subnet.subnet2.id
+    vpc_security_group_ids = [aws_security_group.aws_security_group.web-sg.id]
+    user_data = base64decode(file("userdata2.sh"))
 
 }
 
