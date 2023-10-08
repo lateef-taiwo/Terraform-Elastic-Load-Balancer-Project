@@ -81,17 +81,24 @@ resource "aws_instance" "web-server-1" {
     subnet_id = aws_subnet.subnet1.id
     vpc_security_group_ids = [aws_security_group.aws_security_group.web-sg.id]
     user_data = base64decode(file("userdata1.sh"))
-
+    tags = {
+      name = "webserver1"
+    }
 }
 
 # create 2nd instance (second web server)
 resource "aws_instance" "web-server-2" {
+    
     ami = "ami-0eb260c4d5475b901"
     instance_type = "t2.micro"
+    key_name = "server"
     subnet_id = aws_subnet.subnet2.id
     vpc_security_group_ids = [aws_security_group.aws_security_group.web-sg.id]
     user_data = base64decode(file("userdata2.sh"))
 
+    tags = {
+      name = "webserver2"
+    }
 }
 
 
