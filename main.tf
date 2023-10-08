@@ -16,7 +16,7 @@ resource "aws_subnet" "subnet2" {
     map_public_ip_on_launch = true  
 }
 
-resource "aws_internet_gatewat" "my-igw" {
+resource "aws_internet_gateway" "my-igw" {
     vpc_id = aws_vpc.myvpc.id 
 }
 
@@ -47,14 +47,14 @@ resource "aws_security_group" "web-sg" {
         description = "HTTP Traffic from VPC"
         from_port = 80
         to_port = 80
-        protocol = tcp
+        protocol = "tcp"
         cidr_blocks = ["0.0.0.0/0"]
     }
     ingress {
         description = "SSH Traffic"
         from_port = 22
         to_port = 22
-        protocol = tcp
+        protocol = "tcp"
         cidr_blocks = ["0.0.0.0/0"]
     }
 
@@ -79,7 +79,7 @@ resource "aws_instance" "web-server-1" {
     ami = "ami-0eb260c4d5475b901"
     instance_type = "t2.micro"
     subnet_id = aws_subnet.subnet1.id
-    vpc_security_group_ids = [aws_security_group.aws_security_group.web-sg.id]
+    vpc_security_group_ids = [aws_security_group.web-sg.id]
     user_data = base64decode(file("userdata1.sh"))
     tags = {
       name = "webserver1"
@@ -93,7 +93,7 @@ resource "aws_instance" "web-server-2" {
     instance_type = "t2.micro"
     key_name = "server"
     subnet_id = aws_subnet.subnet2.id
-    vpc_security_group_ids = [aws_security_group.aws_security_group.web-sg.id]
+    vpc_security_group_ids = [aws_security_group.web-sg.id]
     user_data = base64decode(file("userdata2.sh"))
 
     tags = {
