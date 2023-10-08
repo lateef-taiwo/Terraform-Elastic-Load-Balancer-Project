@@ -25,7 +25,7 @@ resource "aws_route_table" "my-route-table" {
 
     route {
         cidr_block = "0.0.0.0/0"
-        gateway_id = aws_internet_gatewat.my-igw.id
+        gateway_id = aws_internet_gateway.my-igw.id
     }
 }
 
@@ -78,9 +78,10 @@ resource "aws_s3_bucket" "mybucket" {
 resource "aws_instance" "web-server-1" {
     ami = "ami-0eb260c4d5475b901"
     instance_type = "t2.micro"
+    key_name = "server"
     subnet_id = aws_subnet.subnet1.id
     vpc_security_group_ids = [aws_security_group.web-sg.id]
-    user_data = base64decode(file("userdata1.sh"))
+    user_data = base64encode(file("userdata1.sh"))
     tags = {
       name = "webserver1"
     }
@@ -94,7 +95,7 @@ resource "aws_instance" "web-server-2" {
     key_name = "server"
     subnet_id = aws_subnet.subnet2.id
     vpc_security_group_ids = [aws_security_group.web-sg.id]
-    user_data = base64decode(file("userdata2.sh"))
+    user_data = base64encode(file("userdata2.sh"))
 
     tags = {
       name = "webserver2"
