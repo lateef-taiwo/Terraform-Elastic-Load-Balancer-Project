@@ -17,8 +17,8 @@ cat <<EOF > /var/www/html/index.html
 <html>
 <head>
   <title>CLIENT WEB SERVER</title>
+<body style="background-color:Orange;">
   <style>
-    background
     /* Add animation and styling for the text */
     @keyframes colorChange {
       0% { color: red; }
