@@ -39,7 +39,7 @@ resource "aws_route_table_association" "route-table-associateion-2" {
     subnet_id = aws_subnet.subnet2.id  
 }
 
-resource "aws_security_groug" "web-sg" {
+resource "aws_security_group" "web-sg" {
     name = "web-sec-group"
     vpc_id = aws_vpc.myvpc.id
 
@@ -58,4 +58,31 @@ resource "aws_security_groug" "web-sg" {
         cidr_block = ["0.0.0.0/0"]
     }
 
+     egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+    
+    tags = {
+        name = "web-server-sg"
+    }
 }
+
+resource "aws_s3_bucket" "mybucket" {
+    bucket = "code-storage-bucket"
+}
+
+
+resource "aws_instance" "web-server-1" {
+    ami = ""
+    instance_type = "t2.micro"
+    subnet_id = aws_subnet.subnet1.id
+    vpc_security_group_ids = [aws_security_group.aws_security_group.web-sg.id]
+    user_data = base64decode(file("user_data.sh"))
+
+}
+
+
