@@ -70,15 +70,34 @@ resource "aws_security_group" "web-sg" {
     }
 }
 
-# create s3 bucket and allow public read
 resource "aws_s3_bucket" "mybucket" {
-    depends_on = [ 
-        aws_s3_bucket_ownership_controls.mybucket,
-        aws_s3_bucket_public_access_block.mybucket,
-     ]
+  bucket = "website-bucket3965"
+}
 
-    bucket = "website-storage-bucket"
-    acl = "public-read"
+resource "aws_s3_bucket_ownership_controls" "mybucket" {
+  bucket = aws_s3_bucket.mybucket.id
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "mybucket" {
+  bucket = aws_s3_bucket.mybucket.id
+
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = false
+  restrict_public_buckets = false
+}
+
+resource "aws_s3_bucket_acl" "mybucket" {
+  depends_on = [
+    aws_s3_bucket_ownership_controls.mybucket,
+    aws_s3_bucket_public_access_block.mybucket,
+  ]
+
+  bucket = aws_s3_bucket.mybucket.id
+  acl    = "public-read"
 }
 
 # create 1st instance (first web server)
@@ -116,7 +135,7 @@ resource "aws_alb" "myalb" {
     load_balancer_type = "application"
 
     security_groups = [ aws_security_group.web-sg.id ]
-    subnets = [ aws_subnet.subnet1.id, aws_instance.web-server-2.id ]
+    subnets = [ aws_subnet.subnet1.id, aws_subnet.subnet2.id ]
 
     tags = {
       Name = "Web-ALB"
@@ -157,7 +176,3 @@ resource "aws_alb_listener" "label" {
       type = "forward"
     }
 }
-
- output "loadbalancerdns" {
-    value = "aws_lb.myalb.dns_name"
-  }
